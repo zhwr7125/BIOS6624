@@ -6,6 +6,7 @@
 ********************************************************;
 
 /*read in the data*/
+
 proc import DATAfile="\Users\zhouwenru\Repositories\bios6624-zhwr7125\Project0\DataProcessed\Project0_dental_data.csv" out=dental_data
 	DBMS=CSV REPLACE;
 	GETNAMES=YES;
