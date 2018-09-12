@@ -1,4 +1,4 @@
 # bios6624-zhwr7125
-# Project Title
+# Information
 
-Supervisd by Dr. Nichole Carlson
+Wenru Zhou Supervisd by Dr. Nichole Carlson
