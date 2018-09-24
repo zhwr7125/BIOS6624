@@ -26,3 +26,13 @@ missing_table<-function(data,variables,group,col.names=T){
   
   return(temp)
 }
+
+
+easy_p<-function(out,pred){
+  p<-plot(out ~ pred, data = data_final, main = paste(label(out), "vs.", label(pred)),xlab=paste(label(pred)),ylab=paste(label(out)))
+  if (is.numeric(pred)==TRUE){
+  y <- predict(lm(out ~ pred, data = data_final))
+  x <- pred[is.na(out)==FALSE]
+  l<-lines(y = y, x = x, col = "navy")
+  }
+}
