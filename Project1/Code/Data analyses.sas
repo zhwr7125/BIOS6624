@@ -40,11 +40,15 @@ DATA cleansas0 cleansas2;
 	if years=0 then output cleansas0;
 	else if years=2 then output cleansas2;
 run;
+
+
+
 /*
 proc freq data=cleansas;
 	table race_ori*race smoke_ori*smoke adh_ori*adh educbas_ori*educbas;
 quit;
 */
+
 
 data cleanwide;
 	merge cleansas0(rename=(agg_ment=agg_ment_0 AGG_PHYS=AGG_PHYS_0 LEU3N=LEU3N_0 VLOAD=VLOAD_0 
@@ -57,6 +61,8 @@ data cleanwide;
 	if a and b;
 	if age_0^=. and BMI_0^=.  and RACE_0^=. and SMOKE_0^=. and EDUCBAS_0^=. ;
 run;
+
+	
 
 proc freq data=cleanwide;
 	table group;
@@ -79,88 +85,115 @@ data cleandata2;
 	diff_PHYS=AGG_PHYS_2-AGG_PHYS_0;
 
 run;
-proc corr data=cleandata2;
-	var age_old;
-	with bmi_old;
+
+proc transpose data= cleandata2 out=longLEU3N;
+	by newid group;
+	var l_LEU3N_0 l_LEU3N_2;
 run;
-proc corr data=cleandata2;
-	var age_0;
-	with bmi_0;
+data longLEU3N;
+	set longLEU3N;
+	if _NAME_="l_LEU3N_0" then cat="Baseline Visit";
+	else cat="Two-Year Visit";
+run;
+TITLE;
+proc sgplot data=longLEU3N;
+   vbox COL1/category=cat group=group;
+   xaxis label="Visit";
+   yaxis label="log count of CD4 cells";
+   keylegend / title="Hard drug use at baseline";
 run;
 
-%macro check_bad(dat);
-proc freq data=&dat;
-	where cookd>0.5;*may be influential, >1 is quite likely to be influencial;
-	table cookd;
-quit;
-proc freq data=&dat;
-	where RSTUDENT>3 or RSTUDENT<-3;*outlier;
-	table RSTUDENT/missing;
-quit;
-%mend;
+
+proc transpose data= cleandata2 out=longVLOAD;
+	by newid group;
+	var l_VLOAD_0 l_VLOAD_2;
+run;
+data longVLOAD;
+	set longVLOAD;
+	if _NAME_="l_VLOAD_0" then cat="Baseline Visit";
+	else cat="Two-Year Visit";
+run;
+proc sgplot data=longVLOAD;
+   vbox COL1/category=cat group=group;
+   xaxis label="Visit";
+   yaxis label="log count of viral load";
+   keylegend / title="Hard drug use at baseline";
+run;
+
+
+proc transpose data= cleandata2 out=longPHYS;
+	by newid group;
+	var AGG_PHYS_0 AGG_PHYS_2;
+run;
+data longPHYS;
+	set longPHYS;
+	if _NAME_="AGG_PHYS_0" then cat="Baseline Visit";
+	else cat="Two-Year Visit";
+run;
+proc sgplot data=longPHYS;
+   vbox COL1/category=cat group=group;
+   xaxis label="Visit";
+   yaxis label="AGG physical scores";
+   keylegend / title="Hard drug use at baseline";
+run;
+
+
+
+proc transpose data= cleandata2 out=longMENT;
+	by newid group;
+	var AGG_MENT_0 AGG_MENT_2;
+run;
+data longMENT;
+	set longMENT;
+	if _NAME_="SF36 MCS score" then cat="Baseline Visit";
+	else cat="Two-Year Visit";
+run;
+proc sgplot data=longMENT;
+   vbox COL1/category=cat group=group;
+   xaxis label="Visit";
+   yaxis label="SF36 PCS scors";
+   keylegend / title="Hard drug use at baseline";
+run;
+
+
+proc means data=cleandata2;
+	var age_0 BMI_0;
+run;
+
+
+
+ods listing close;
+ods html path='C:\repository\bios6624-zhwr7125\Project1\Output' file = 'Project1_analyses.html';
+	
+
+proc sgscatter data=cleandata2;
+	matrix age_0 bmi_0 l_LEU3N_0 l_VLOAD_0 AGG_PHYS_0 AGG_MENT_0;
+run;
+
+
 proc glm data=cleandata2  PLOTS=(DIAGNOSTICS RESIDUALS);
 	class RACE_0(ref='0') EDUCBAS_0(ref='1') SMOKE_0(ref='0') group(ref='0') ADH_2(ref='0');
 	model diff_LEU3N=l_LEU3N_0 age_0 BMI_0 RACE_0 EDUCBAS_0 SMOKE_0 group ADH_2/solution; 
 	output out=leu COOKD=COOKD RSTUDENT=RSTUDENT;
 quit;
-%check_bad(leu)
-data cleandata_leu;
-	set leu(where=(RSTUDENT<=3 and RSTUDENT>=-3));
-run;
-proc glm data=cleandata_leu  PLOTS=(DIAGNOSTICS RESIDUALS);
-	class RACE_0(ref='0') EDUCBAS_0(ref='1') SMOKE_0(ref='0') group(ref='0') ADH_2(ref='0');
-	model diff_LEU3N=l_LEU3N_0 age_0 BMI_0 RACE_0 EDUCBAS_0 SMOKE_0 group ADH_2/solution; 
-quit;
-
-
 
 proc glm data=cleandata2  PLOTS=(DIAGNOSTICS RESIDUALS);
 	class RACE_0(ref='0') EDUCBAS_0(ref='1') SMOKE_0(ref='0') group(ref='0') ADH_2(ref='0');
 	model diff_VLOAD=l_VLOAD_0 age_0 BMI_0 RACE_0 EDUCBAS_0 SMOKE_0 group ADH_2/solution; 
 	output out=vlo COOKD=COOKD RSTUDENT=RSTUDENT;
 quit;
-%check_bad(vlo)
-data cleandata_vlo;
-	set vlo(where=(RSTUDENT<=3 and RSTUDENT>=-3));
-run;
-proc glm data=cleandata_vlo  PLOTS=(DIAGNOSTICS RESIDUALS);
-	class RACE_0(ref='0') EDUCBAS_0(ref='1') SMOKE_0(ref='0') group(ref='0') ADH_2(ref='0');
-	model diff_VLOAD=l_VLOAD_0 age_0 BMI_0 RACE_0 EDUCBAS_0 SMOKE_0 group ADH_2/solution; 
-quit;
-
-
-
 
 proc glm data=cleandata2  PLOTS=(DIAGNOSTICS RESIDUALS);
 	class RACE_0(ref='0') EDUCBAS_0(ref='1') SMOKE_0(ref='0') group(ref='0') ADH_2(ref='0');
 	model diff_MENT=AGG_MENT_0 age_0 BMI_0 RACE_0 EDUCBAS_0 SMOKE_0 group ADH_2/solution; 
 	output out=men COOKD=COOKD RSTUDENT=RSTUDENT;
 quit;
-%check_bad(men)
-data cleandata_men;
-	set men(where=(RSTUDENT<=3 and RSTUDENT>=-3));
-run;
-proc glm data=cleandata_men  PLOTS=(DIAGNOSTICS RESIDUALS);
-	class RACE_0(ref='0') EDUCBAS_0(ref='1') SMOKE_0(ref='0') group(ref='0') ADH_2(ref='0');
-	model diff_MENT=AGG_MENT_0 age_0 BMI_0 RACE_0 EDUCBAS_0 SMOKE_0 group ADH_2/solution; 
-quit;
-
-
 
 proc glm data=cleandata2  PLOTS=(DIAGNOSTICS RESIDUALS);
 	class RACE_0(ref='0') EDUCBAS_0(ref='1') SMOKE_0(ref='0') group(ref='0') ADH_2(ref='0');
 	model diff_PHYS=AGG_PHYS_0 age_0 BMI_0 RACE_0 EDUCBAS_0 SMOKE_0 group ADH_2/solution; 
 	output out=phy COOKD=COOKD RSTUDENT=RSTUDENT;
 quit;
-%check_bad(phy)
-data cleandata_phy;
-	set phy(where=(RSTUDENT<=3 and RSTUDENT>=-3));
-run;
-proc glm data=cleandata_phy  PLOTS=(DIAGNOSTICS RESIDUALS);
-	class RACE_0(ref='0') EDUCBAS_0(ref='1') SMOKE_0(ref='0') group(ref='0') ADH_2(ref='0');
-	model diff_PHYS=AGG_PHYS_0 age_0 BMI_0 RACE_0 EDUCBAS_0 SMOKE_0 group ADH_2/solution; 
-quit;
-
 
 proc means data=cleandata2;
 	var diff_LEU3N diff_VLOAD diff_MENT diff_PHYS;
@@ -181,7 +214,8 @@ proc transreg data=cleandata2 design;
 run;
 
 /*CD4 Cell*/
-proc mcmc data=input_mcmc nbi=10000 nmc=50000 outpost=callout plots=all DIC;
+proc mcmc data=input_mcmc nbi=10000 nmc=50000 outpost=callout SEED=1 plots=all DIC;
+  where diff_LEU3N^=.;
   parms beta0-beta9 0 sigma2 1; 
   prior beta0-beta9 ~ normal(mean = 0, var = 100000);
   prior sigma2 ~ igamma(shape = 2.001,scale = 1.001);
@@ -193,7 +227,8 @@ proc sgscatter data=callout;
    matrix beta0-beta9 sigma2;
 run;
 *remove beta8,GROUP;
-proc mcmc data=input_mcmc nbi=10000 nmc=50000 outpost=callout plots=all DIC;
+proc mcmc data=input_mcmc nbi=10000 nmc=50000 outpost=callout SEED=1 plots=all DIC;
+  where diff_LEU3N^=.;
   parms beta0-beta7 0 beta9 0 sigma2 1; 
   prior beta0-beta7 beta9 ~ normal(mean = 0, var = 100000);
   prior sigma2 ~ igamma(shape = 2.001,scale = 1.001);
@@ -209,7 +244,8 @@ run;
 
 
 /*Vload*/
-proc mcmc data=input_mcmc nbi=10000 nmc=50000 outpost=callout plots=all DIC;
+proc mcmc data=input_mcmc nbi=10000 nmc=50000 outpost=callout SEED=1 plots=all DIC;
+  where diff_VLOAD^=.;
   parms beta0 0 beta1 0 beta2 0 beta3 0 beta4 0 beta5 0 beta6 0 beta7 0 beta8 0 beta9 0 sigma2 1; 
   prior beta0-beta9 ~ normal(mean = 0, var = 100000);
   prior sigma2 ~ igamma(shape = 2.001,scale = 1.001);
@@ -217,8 +253,12 @@ proc mcmc data=input_mcmc nbi=10000 nmc=50000 outpost=callout plots=all DIC;
   model diff_VLOAD ~ normal(mu, var = sigma2);
   title "Change in log10 virus load and other variables";
 run;
+proc sgscatter data=callout;
+   matrix beta0-beta9 sigma2;
+run;
 *remove beta8,GROUP;
-proc mcmc data=input_mcmc nbi=10000 nmc=50000 outpost=callout plots=all DIC;
+proc mcmc data=input_mcmc nbi=10000 nmc=50000 outpost=callout SEED=1 plots=all DIC;
+  where diff_VLOAD^=.;
   parms beta0-beta7 0 beta9 0 sigma2 1; 
   prior beta0-beta7 beta9 ~ normal(mean = 0, var = 100000);
   prior sigma2 ~ igamma(shape = 2.001,scale = 1.001);
@@ -233,8 +273,8 @@ run;
 
 
 /*Mental*/
-proc mcmc data=input_mcmc nbi=1000 nmc=50000 outpost=callout plots=all DIC;
-  parms beta0 0 beta1 0 beta2 0 beta3 0 beta4 0 beta5 0 beta6 0 beta7 0 beta8 0 beta9 0 sigma2 1; 
+proc mcmc data=input_mcmc nbi=1000 nmc=50000 outpost=callout SEED=1 plots=all DIC;
+  parms beta0-beta9 0 sigma2 1; 
   prior beta0-beta9 ~ normal(mean = 0, var = 100000);
   prior sigma2 ~ igamma(shape = 2.001,scale = 1.001);
   mu = beta0 + beta1*AGG_MENT_0+beta2*age_0+beta3*BMI_0+beta4*RACE_01+beta5*EDUCBAS_02+beta6*EDUCBAS_03+beta7*smoke_01+beta8*group1+beta9*ADH_21;
@@ -245,7 +285,8 @@ proc sgscatter data=callout;
    matrix beta0-beta9 sigma2;
 run;
 *remove beta8,GROUP;
-proc mcmc data=input_mcmc nbi=10000 nmc=50000 outpost=callout plots=all DIC;
+proc mcmc data=input_mcmc nbi=10000 nmc=50000 outpost=callout SEED=1 plots=all DIC;
+  where diff_MENT^=.;
   parms beta0-beta7 0 beta9 0 sigma2 1; 
   prior beta0-beta7 beta9 ~ normal(mean = 0, var = 100000);
   prior sigma2 ~ igamma(shape = 2.001,scale = 1.001);
@@ -259,8 +300,9 @@ run;
 
 
 /*Physical*/
-proc mcmc data=input_mcmc nbi=1000 nmc=50000 outpost=callout plots=all DIC;
-  parms beta0 0 beta1 0 beta2 0 beta3 0 beta4 0 beta5 0 beta6 0 beta7 0 beta8 0 beta9 0 sigma2 1; 
+proc mcmc data=input_mcmc nbi=1000 nmc=50000 outpost=callout SEED=1 plots=all DIC;
+  where diff_PHYS^=.;
+  parms beta0-beta9 0 sigma2 1; 
   prior beta0-beta9 ~ normal(mean = 0, var = 100000);
   prior sigma2 ~ igamma(shape = 2.001,scale = 1.001);
   mu = beta0 + beta1*AGG_PHYS_0+beta2*age_0+beta3*BMI_0+beta4*RACE_01+beta5*EDUCBAS_02+beta6*EDUCBAS_03+beta7*smoke_01+beta8*group1+beta9*ADH_21;
@@ -271,7 +313,8 @@ proc sgscatter data=callout;
    matrix beta0-beta9 sigma2;
 run;
 *remove beta8,GROUP;
-proc mcmc data=input_mcmc nbi=10000 nmc=50000 outpost=callout plots=all DIC;
+proc mcmc data=input_mcmc nbi=10000 nmc=50000 outpost=callout SEED=1 plots=all DIC;
+  where diff_PHYS^=.;
   parms beta0-beta7 0 beta9 0 sigma2 1; 
   prior beta0-beta7 beta9 ~ normal(mean = 0, var = 100000);
   prior sigma2 ~ igamma(shape = 2.001,scale = 1.001);
@@ -282,3 +325,6 @@ run;
 proc sgscatter data=callout;
    matrix beta0-beta7 beta9 sigma2;
 run;
+
+ods html close;
+ods listing;
