@@ -1,5 +1,5 @@
 # Function used in this project- by Wenru Zhou, 10/23/2018
-#Need to fix lognormal
+# 10/24/2018 lognormal fixed-code from Yaxu
 
 
 library(lme4)
@@ -49,13 +49,13 @@ data_gene<-function(n1,n2,p,beta,var_b0,var_b1,var_b0.1,var_b0.2,var_b1.1,var_b1
   
   # generate correlated random intercept
   # Skewed: 
-  #b0i+mean~logN(0,3)        b1+1~logN(0,0)
-  #b0i+mean~logN(0,3)        b1+1~logN(0,2)
-  Sig0.S <- gmat(sig2 = c(sqrt(var_b0),sqrt(var_b1)), rho = 0, p = 2)
-  d.S <- mvrnorm(n, mu = c(0,0), Sigma = Sig0.S)
+  #To get var(lognormal(mu,var_b0))=3, with mu=0, we should let var_b0=0.834115194
+  #To get var(lognormal(mu,var_b1))=2, with mu=0, we should let var_b1=0.693147181
   
-  b0.S <- exp(d.S[,1])-exp(var_b0/2)
-  b1.S <- exp(d.S[,2])-exp(var_b1/2)
+  d.Sa <- rlnorm(n, meanlog = 0, sdlog = sqrt(var_b0))
+  b0.S <- d.Sa-exp(var_b0/2)
+  d.Sb <- rlnorm(n, meanlog = 0, sdlog = sqrt(var_b1))
+  b1.S <- d.Sb-exp(var_b1/2)
   
   d0.S <-rep(b0.S,each=p)
   d1.S <-rep(b1.S,each=p) 
