@@ -49,7 +49,7 @@ d0.M2 <-rep(b0.M2,each=p)#intercept, PART2
 d1.M1 <-rep(b1.M1,each=p)#slope, PART1
 d1.M2 <-rep(b1.M2,each=p)#slope, PART2
 
-uni_id<-rep(runif(20,0,1),each=p )
+uni_id<-rep(runif(n,0,1),each=p )
 
 
 #error
@@ -75,7 +75,21 @@ else {sample$y_M[i]<-sample$y_M2[i]}
 return(sample)
 
 
-toto=matrix(0,5,5)
-toto
-tata=c(1,2,3,4,5)
-toto[,1]=tata
+#random intercept model
+rand.fit <- lme(y_S ~ grp*time,random=~1|id,data=sample) # using lme4 package
+#random intercept and slope model, cov=VC
+rand.fit <- lme(y_S ~ grp*time,random=list(id = pdDiag(~ time)),data=sample,cor=corCompSymm()) 
+fixed_effect<-fixef(rand.fit)
+assign(paste(pvpv[1,1,1,1,1],sep=""),Anova(rand.fit,type=3)$'Pr(>Chisq)')
+pvpv[1,1,1,1,1]<-Anova(rand.fit,type=3)$'Pr(>Chisq)'
+Pv20_t5_null_int_1<-Anova(rand.fit,type=3)$'Pr(>Chisq)'
+
+fix<-c("intercept","group","time","group*time")
+pva<-c("intercept","group","time","group*time")
+fix<-data.frame(rbind(fix,fixed_effect))
+pva<-data.frame(rbind(pva,p_value))
+
+
+
+library(readr)
+write_csv(sample, "C:/repository/bios6624-zhwr7125/Project2/Data/sample.csv")

@@ -2,8 +2,10 @@
 # 10/24/2018 lognormal fixed-code from Yaxu
 
 
-library(lme4)
+#library(lme4)
 library(MASS)
+library(nlme)
+library(car)
 
 # we will need gmat() to generate covariance matrix for random effects
 # we may also want to use un() from the MultiMod.R script
@@ -79,7 +81,7 @@ data_gene<-function(n1,n2,p,beta,var_b0,var_b1,var_b0.1,var_b0.2,var_b1.1,var_b1
   d1.M1 <-rep(b1.M1,each=p)#slope, PART1
   d1.M2 <-rep(b1.M2,each=p)#slope, PART2
   
-  uni_id<-rep(runif(20,0,1),each=p )
+  uni_id<-rep(runif(n,0,1),each=p )
   
   
   #error
