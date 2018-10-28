@@ -1,8 +1,15 @@
-rep<-10
-#should be 500
+##########################simulation results##############################
+#                                                                        #
+# Author: Yaxu, Lingdi, Wenru, 10/28/2018                                #                                                                        #
+# pleases read the step0~step5 in section1 and 2                         #
+#                                                                        #
+##########################################################################
 
-seed<-seq(from=1,to=rep, by=1)
+##section 0----Do not change#################
+#set replicates
+rep<-500
 
+#Set storing vectors
 storcoskew1 <- rep(5,rep)
 storcoskew2 <- rep(5,rep)
 storcoskew3 <- rep(5,rep)
@@ -23,14 +30,50 @@ storpvmix2 <- rep(5,rep)
 storpvmix3 <- rep(5,rep)
 storpvmix4 <- rep(5,rep)
 
-##storpvskewcom <- as.data.frame(matrix(rep(0), nrow = 20, ncol = 4))
 
-#N=200,P=5,RAND INT, NULL
-for (i in 1:rep) {
-  check<-data_gene(n1=200/2,n2=200/2,p=5,beta=c(0, 0, 0, 0),var_b0 = 0.834115194,var_b1 = 0,var_b0.1 = 7, var_b0.2 = 5, var_b1.1 = 0, var_b1.2 = 0)
+
+
+
+##section1----Set param######################
+
+#Step0: download the newest data_function.R from github, and change the address below
+source("C:/repository/bios6624-zhwr7125/Project2/Code/data_function.r")
+
+#Step1. sample size, Yaxu1000, Wenru200, Lingdi20
+n.set=200
+
+#Step2. time replicate, 5 or 10
+p.set=5
+#p.set=10
+
+#Step3. random int or slp, you must also replace by hand in lme later in step 5
+#random int:
+var_b1.set=0
+var_b1.1.set = 0
+var_b1.2.set = 0
+
+#random slp:
+#var_b1.set=0.693147181
+#var_b1.1.set = 2
+#var_b1.2.set = 4
+
+#Step4. Null or alt
+#Null
+beta.set<-c(0, 0, 0, 0)
+#Alt
+#beta.set<-c(2, 1, 0.5, 0.25)
+
+
   
-  rand.fitskew<- lme(y_S ~ grp*time,random=~1|id,data_gene(n1=200/2,n2=200/2,p=5,beta=c(0, 0, 0, 0),var_b0 = 0.834115194,var_b1 = 0,var_b0.1 = 7, var_b0.2 = 5, var_b1.1 = 0, var_b1.2 = 0))#nul, int
-  rand.fitmix <- lme(y_M ~ grp*time,random=~1|id,data_gene(n1=200/2,n2=200/2,p=5,beta=c(0, 0, 0, 0),var_b0 = 0.834115194,var_b1 = 0,var_b0.1 = 7, var_b0.2 = 5, var_b1.1 = 0, var_b1.2 = 0))#nul, int
+#section2----Start simulation, step 5 is here#############################
+#set seed
+seed<-seq(from=1,to=rep, by=1)
+for (i in 1:rep) {
+  
+#Step5: change random=~1|id for random intercept
+#       change random=random=list(id = pdDiag(~ time)) for random intercept and slope
+  rand.fitskew<- lme(y_S ~ grp*time,random=~1|id,data_gene(n1=n.set/2,n2=n.set/2,p=p.set,beta=beta.set,var_b0 = 0.834115194,var_b1 = var_b1.set,var_b0.1 = 7, var_b0.2 = 5, var_b1.1 = var_b1.1.set, var_b1.2 = var_b1.2.set))#nul, int
+  rand.fitmix <- lme(y_M ~ grp*time,random=~1|id,data_gene(n1=n.set/2,n2=n.set/2,p=p.set,beta=beta.set,var_b0 = 0.834115194,var_b1 = var_b1.set,var_b0.1 = 7, var_b0.2 = 5, var_b1.1 = var_b1.1.set, var_b1.2 = var_b1.2.set))#nul, int
   
   storcoskew1[i] <- fixef(rand.fitskew)[1]
   storcoskew2[i] <- fixef(rand.fitskew)[2]
@@ -51,12 +94,6 @@ for (i in 1:rep) {
   storpvmix2[i] <- Anova(rand.fitmix,type=3)$'Pr(>Chisq)'[2]
   storpvmix3[i] <- Anova(rand.fitmix,type=3)$'Pr(>Chisq)'[3]
   storpvmix4[i] <- Anova(rand.fitmix,type=3)$'Pr(>Chisq)'[4]
-  
-  
-  
-  
-  ##storpvskewcom[i] <- cbind(storpvskew1[i],storpvskew2[i],storpvskew3[i],storpvskew4[i])
-  
 }
 
 storcoskewcom <- cbind(storcoskew1,storcoskew2,storcoskew3,storcoskew4)
@@ -74,4 +111,22 @@ colnames(storpvmixcom) <- c("Beta0/p_M","Beta1/p_M","Beta2/p_M","Beta3/p_M")
 results_c <- cbind(storcoskewcom,storcomixcom)
 results_p <- cbind(storpvskewcom,storpvmixcom)
 
-write_csv(sample, "C:/repository/bios6624-zhwr7125/Project2/Data/sample.csv")
+##section3----calculate mean, bias, sd, se, type I, II error################
+#coef part
+results_c_mean<-apply(results_c,2,mean)
+results_c_sd<-apply(results_c,2,sd)
+results_c_se<-results_c_sd/sqrt(rep)
+results_c_bias<-results_c_mean-c(beta.set,beta.set)
+
+
+#pval part
+#for null and alt
+results_p_cal<-apply(ifelse(results_p<=0.05,1,0),2,mean)
+
+final_result<-data.frame(results_c_mean,results_c_sd,results_c_se,results_c_bias,results_p_cal)
+names <- rownames(final_result)
+final_result<-cbind(names,final_result)
+##section4----save the output####################
+
+library(readr)
+write_csv(final_result, "C:/repository/bios6624-zhwr7125/Project2/Data/final_result.csv")
