@@ -54,6 +54,8 @@ data_gene<-function(n1,n2,p,beta,var_b0,var_b1,var_b0.1,var_b0.2,var_b1.1,var_b1
   #To get var(lognormal(mu,var_b0))=3, with mu=0, we should let var_b0=0.834115194
   #To get var(lognormal(mu,var_b1))=2, with mu=0, we should let var_b1=0.693147181
   
+  set.seed(seed[i])
+  
   d.Sa <- rlnorm(n, meanlog = 0, sdlog = sqrt(var_b0))
   b0.S <- d.Sa-exp(var_b0/2)
   d.Sb <- rlnorm(n, meanlog = 0, sdlog = sqrt(var_b1))
