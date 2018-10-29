@@ -69,11 +69,11 @@ beta.set<-c(0, 0, 0, 0)
 #set seed
 seed<-seq(from=1,to=rep, by=1)
 for (i in 1:rep) {
-  
+ctrl <- lmeControl(opt='optim')
 #Step5: change random=~1|id for random intercept
 #       change random=list(id = pdDiag(~ time)) for random intercept and slope
-  rand.fitskew<- tryCatch(lme(y_S ~ grp*time,random=list(id = pdDiag(~ time)),data_gene(n1=n.set/2,n2=n.set/2,p=p.set,beta=beta.set,var_b0 = 0.834115194,var_b1 = var_b1.set,var_b0.1 = 7, var_b0.2 = 5, var_b1.1 = var_b1.1.set, var_b1.2 = var_b1.2.set)), error=function(e) NULL )
-  rand.fitmix <- tryCatch(lme(y_M ~ grp*time,random=list(id = pdDiag(~ time)),data_gene(n1=n.set/2,n2=n.set/2,p=p.set,beta=beta.set,var_b0 = 0.834115194,var_b1 = var_b1.set,var_b0.1 = 7, var_b0.2 = 5, var_b1.1 = var_b1.1.set, var_b1.2 = var_b1.2.set)), error=function(e) NULL )
+  rand.fitskew<- tryCatch(lme(y_S ~ grp*time,random=list(id = pdDiag(~ time)),control=ctrl,data_gene(n1=n.set/2,n2=n.set/2,p=p.set,beta=beta.set,var_b0 = 0.834115194,var_b1 = var_b1.set,var_b0.1 = 7, var_b0.2 = 5, var_b1.1 = var_b1.1.set, var_b1.2 = var_b1.2.set)), error=function(e) NULL )
+  rand.fitmix <- tryCatch(lme(y_M ~ grp*time,random=list(id = pdDiag(~ time)),control=ctrl,data_gene(n1=n.set/2,n2=n.set/2,p=p.set,beta=beta.set,var_b0 = 0.834115194,var_b1 = var_b1.set,var_b0.1 = 7, var_b0.2 = 5, var_b1.1 = var_b1.1.set, var_b1.2 = var_b1.2.set)), error=function(e) NULL )
   
   storcoskew1[i] <- tryCatch(fixef(rand.fitskew)[1], error=function(e) NA)
   storcoskew2[i] <- tryCatch(fixef(rand.fitskew)[2], error=function(e) NA)
@@ -116,7 +116,7 @@ results_p <- cbind(storpvskewcom,storpvmixcom)
 results_c<-na.omit(results_c)
 results_c_mean<-apply(results_c,2,mean,na.rm=T)
 results_c_sd<-apply(results_c,2,sd,na.rm=T)
-results_c_se<-results_c_sd/sqrt(nrow(results_p))
+results_c_se<-results_c_sd/sqrt(nrow(results_c))
 results_c_bias<-results_c_mean-c(beta.set,beta.set)
 
 
