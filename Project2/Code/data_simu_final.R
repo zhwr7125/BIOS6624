@@ -113,19 +113,21 @@ results_p <- cbind(storpvskewcom,storpvmixcom)
 
 ##section3----calculate mean, bias, sd, se, type I, II error################
 #coef part
+results_c<-na.omit(results_c)
 results_c_mean<-apply(results_c,2,mean,na.rm=T)
 results_c_sd<-apply(results_c,2,sd,na.rm=T)
-results_c_se<-results_c_sd/sqrt(rep)
+results_c_se<-results_c_sd/sqrt(nrow(results_p))
 results_c_bias<-results_c_mean-c(beta.set,beta.set)
 
 
 #pval part
 #for null and alt
+results_p<-na.omit(results_p)
 results_p_cal<-apply(ifelse(results_p<=0.05,1,0),2,mean,na.rm=T)
 
 final_result<-data.frame(results_c_mean,results_c_sd,results_c_se,results_c_bias,results_p_cal)
 names <- rownames(final_result)
-final_result<-cbind(names,final_result)
+final_result<-cbind(names,final_result,nrow(results_p))
 ##section4----save the output####################
 
 library(readr)
