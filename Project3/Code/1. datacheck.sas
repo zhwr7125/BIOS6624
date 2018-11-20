@@ -73,8 +73,7 @@ data vadata2;
 	*Combine ASA 1 and 2;
 	asa_combine=asa;
 	if asa in (1,2) then asa_combine=1;
-
-	drop BMI;
+	drop bmi;
 run;
 
 data vadata2;
@@ -103,6 +102,8 @@ proc print data=vadata2;
 run;
 
 
+
+proc 
 *Check missing of asa using categorical data;
 proc freq data=vadata2;
 	table (asa_i)*(hospcode sixmonth proced proced_i death30 height_i bmi_i albumin_i)/chisq;
@@ -221,33 +222,7 @@ proc ttest data=vadata2;
 run;
 *Not significant;
 
-
-
-
-****************************************************************;
-*Calculated per hospital per year total line number and total 1*;
-****************************************************************;
-
-proc sort data=vadata2; by hospcode; run;
-data vadata3;
+libname hw "C:\repository\bios6624-zhwr7125\Project3\Data";
+data hw.vadata2;
 	set vadata2;
-	by hospcode;
-		ndeath+death30;
-		nrow+1;
-	if first.hospcode then do;
-		ndeath=0;
-		nrow=0;
-	end;
-	if last.hospcode;
-	death=(ndeath/nrow);
-	death1000=(ndeath/nrow)*1000;
 run;
-		
-proc sgplot data=vadata3;
-	vbar hospcode/response=death1000;
-run;
-
-
-****************************************************************;
-*Logistic regression											*;
-****************************************************************;
