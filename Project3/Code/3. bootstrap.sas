@@ -11,6 +11,7 @@ proc format;
 libname hw "C:\repository\bios6624-zhwr7125\Project3\Data";
 data vadata2;
 	set hw.vadata2;
+	format sixmonth yr.;
 run;
 
 ****************************************************************;
@@ -19,8 +20,8 @@ run;
 data vadata4;
 	set vadata2;
 	if sixmonth ^=39;
-	if asa ^=. and proced ^=. and bmi ^=.;
-	keep hospcode sixmonth proced asa asa_combine bmi death30;
+	if asa_combine ^=. and proced ^=. and bmi ^=.;
+	keep hospcode sixmonth proced asa_combine bmi death30;
 run;
 %let NumSamples = 10;       /* number of bootstrap resamples */
 proc sort data=vadata4; by hospcode; run;
@@ -39,6 +40,7 @@ proc logistic data=BootSSFreq;
 	where SampleID=&i.;
 	class death30(ref="0") proced(ref=first) asa_combine(ref=first);
 	model death30=proced asa_combine bmi;
+	WEIGHT NumberHits;
 	ods output ParameterEstimates=haha&i.;
 run;
 
@@ -112,13 +114,13 @@ data pred_sum;
 	end;
 	if last.hospcode;
 	death=(pdeath/nrow);
-	death100=death*100;
-	keep B hospcode death100;
+	death1000=death*1000;
+	keep B hospcode death1000;
 run;
 
 proc transpose data=pred_sum out=pred_wide;
 	by B;
-	var death100;
+	var death1000;
 run;
 
 %macro genedata();
@@ -130,6 +132,11 @@ data pred_wide2;
 run;
 %mend;
 %genedata;
+
+proc means data=pred_wide2;
+	var hospcode1-hospcode44;
+run;
+
 
 data check;
 	set vadata2;
