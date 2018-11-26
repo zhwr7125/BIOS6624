@@ -46,12 +46,6 @@ data vadata2;
 	end;
 	drop i;
 
-	*Define the normal range of albumin;
-	if albumin=. then albumin_normal=.;
-	else if albumin<3.4 then albumin_normal=0;
-	else if albumin>=3.4 and albumin<=5.4 then albumin_normal=1;
-	else if albumin>=5.4 then albumin_normal=2;
-
 	*Check the bmi;
 	weight_lb=weight;
 
@@ -118,7 +112,7 @@ proc logistic data=vadata2;
 	model asa_i=proced_i;
 run;
 proc logistic data=vadata2;
-	class asa_i death30;
+	class asa_i death30(ref='0');
 	model asa_i=death30;
 run;
 proc logistic data=vadata2;
@@ -145,12 +139,13 @@ run;
 
 
 *Check missing of proced using categorical data;
+
 proc freq data=vadata2;
 	table (proced_i)*(hospcode sixmonth asa death30 height_i bmi_i albumin_i)/chisq;
 run;
 *check proced_i by death30, proced_i by height_i, proced_i by bmi_i;
 proc logistic data=vadata2;
-	class proced_i death30;
+	class proced_i death30(ref='0');
 	model proced_i=death30;
 run;
 proc logistic data=vadata2;
@@ -191,7 +186,7 @@ proc logistic data=vadata2;
 	model bmi_i=proced_i;
 run;
 proc logistic data=vadata2;
-	class bmi_i death30;
+	class bmi_i death30(ref='0');
 	model bmi_i=death30;
 run;
 
