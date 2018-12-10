@@ -3,8 +3,9 @@ title: "Project1"
 author: "Wenru Zhou"
 date: "9/23/2018"
 output:
-  html_document: default
+  word_document: default
   pdf_document: default
+  html_document: default
 ---
 
 
@@ -35,8 +36,6 @@ source('Tables.R')
 Hard drug missing at baseline is `r missing_hard_drugs_count` (`r missing_hard_drugs_rate*100`%).
 
 Unknown BMI:  `r unknown_bmi_count`(`r unknown_bmi_rate*100`%)
-
-Unknown income:  `r unknown_income_count`(`r unknown_income_rate*100`%)
 
 **Table 0. Missing**
 ***Baseline***

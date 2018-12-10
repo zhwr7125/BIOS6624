@@ -78,9 +78,12 @@ return(sample)
 #random intercept model
 rand.fit <- lme(y_S ~ grp*time,random=~1|id,data=sample) # using lme4 package
 #random intercept and slope model, cov=VC
-rand.fit <- lme(y_S ~ grp*time,random=list(id = pdDiag(~ time)),data=sample,cor=corCompSymm()) 
-fixed_effect<-fixef(rand.fit)
-assign(paste(pvpv[1,1,1,1,1],sep=""),Anova(rand.fit,type=3)$'Pr(>Chisq)')
+rand.fit.S <- lme(y_S ~ grp*time,random=list(id = pdDiag(~ time)),data=sample,cor=corCompSymm()) 
+rand.fit.M <- lme(y_M ~ grp*time,random=list(id = pdDiag(~ time)),data=sample,cor=corCompSymm()) 
+
+fixed_effect<-data.frame(fixef(rand.fit.S),fixef(rand.fit.M))
+pp<-Anova(rand.fit,type=3)$'Pr(>Chisq)'
+assign(paste(pvpv[1,1,1,1,1],sep=""),pp)
 pvpv[1,1,1,1,1]<-Anova(rand.fit,type=3)$'Pr(>Chisq)'
 Pv20_t5_null_int_1<-Anova(rand.fit,type=3)$'Pr(>Chisq)'
 
