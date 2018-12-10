@@ -1,0 +1,24 @@
+proc import file="C:\repository\bios6624-zhwr7125\Project2\Data\sample.csv" out=test replace;
+run;
+
+data test2;
+	set test;
+	time2=time/4;
+	y1=y_fix+e;
+	u = rand("normal");
+	y2=y_fix+u;
+run;
+proc freq data=test2;
+	table indicat;
+run; 
+proc mixed data=test2;
+	model y1=grp|time2/solution;
+	*random intercept/sub=id type=vc;
+run;
+proc mixed data=test2;
+	model y2=grp|time2/solution;
+	*random intercept/sub=id type=vc;
+run;
+proc mixed data=test;
+	model y_fix=grp|time/solution;
+run;
